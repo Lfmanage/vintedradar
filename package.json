@@ -1,0 +1,10 @@
+{
+  "name": "vintedradar",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Outil personnel de sourcing : analyse, classement et opportunités d'annonces de seconde main.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  }
+}

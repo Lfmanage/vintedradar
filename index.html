@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<title>VintedRadar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --primary:#1F9D82;--primary-pressed:#17826C;--primary-soft:#E6F6F1;
+  --badge-bg:#CDEFE3;--badge-text:#0F6E5A;
+  --text:#111418;--text-2:#6B7280;--text-3:#9CA3AF;
+  --bg:#FFFFFF;--surface:#F4F5F7;--sep:#ECEEF1;--border:#E3E6EA;--danger:#E5484D;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{height:100%;background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow:hidden}
+#app{height:100%;max-width:480px;margin:0 auto;position:relative;background:var(--bg);overflow:hidden}
+@media (min-width:560px){html,body{background:#EEF0F2}#app{border-left:1px solid var(--sep);border-right:1px solid var(--sep)}}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit}
+input{font:inherit;color:inherit}
+svg{display:block}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.hide{visibility:hidden}
+
+/* Écrans */
+.screen{height:100%;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+.in-fwd{animation:inF .22s cubic-bezier(.2,.8,.2,1)}
+.in-back{animation:inB .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes inF{from{opacity:0;transform:translateX(24px)}}
+@keyframes inB{from{opacity:0;transform:translateX(-24px)}}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:1}
+.topbar{flex:none;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 8px}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;color:var(--text)}
+.icon-btn svg{width:24px;height:24px}
+.icon-btn:active{background:var(--surface)}
+.text-btn{height:44px;padding:0 12px;font-size:15px;font-weight:500;border-radius:12px}
+.text-btn:active{background:var(--surface)}
+.head3{flex:none;display:grid;grid-template-columns:52px 1fr 52px;align-items:center;padding:6px 4px 12px;min-height:66px}
+.head3 .ttl{text-align:center;min-width:0}
+.ttl h2{font-size:20px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ttl h2.sm{font-size:17px;font-weight:600}
+.ttl p{font-size:13px;color:var(--text-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.filter-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);display:grid;place-items:center;position:relative;justify-self:center}
+.filter-btn svg{width:20px;height:20px}
+.filter-btn .dot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 2px var(--surface)}
+.footer{flex:none;padding:10px 20px 16px;background:var(--bg);position:relative;z-index:2}
+.page-title{font-size:28px;font-weight:700;letter-spacing:-.02em;padding:2px 20px 18px}
+
+/* Boutons */
+.btn{height:52px;width:100%;border-radius:12px;background:var(--primary);color:#fff;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(31,157,130,.2);transition:transform .12s ease,background .12s ease,opacity .15s ease}
+.btn svg{width:19px;height:19px}
+.btn:active{transform:scale(.98);background:var(--primary-pressed)}
+.btn:disabled{opacity:.4;box-shadow:none;cursor:default;transform:none;background:var(--primary)}
+.btn-2{height:46px;padding:0 20px;border-radius:12px;background:var(--surface);font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.btn-2:active{transform:scale(.98)}
+
+/* Accueil */
+.home-inner{padding:0 20px 150px;text-align:center}
+.logo{margin-top:clamp(24px,9vh,92px);font-size:34px;font-weight:700;letter-spacing:-.035em;line-height:1.1}
+.logo span{color:var(--primary)}
+.tagline{margin-top:10px;font-size:14px;color:var(--text-2)}
+.field{margin-top:44px;display:flex;align-items:center;gap:10px;height:52px;padding:0 6px 0 16px;border:1px solid var(--border);border-radius:12px;background:#fff;text-align:left;transition:border-color .15s,box-shadow .15s;cursor:text}
+.field:focus-within{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}
+.field>svg{width:20px;height:20px;flex:none}
+.field input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;font-size:15px}
+.field input::placeholder{color:#3A3F45}
+.clear{width:36px;height:36px;display:grid;place-items:center;color:var(--text-2);border-radius:10px;flex:none}
+.clear svg{width:18px;height:18px}
+.field-err{height:24px;padding-top:6px;font-size:13px;color:var(--danger);text-align:left}
+.sub-link{margin-top:18px;font-size:14px;color:var(--text-2);padding:8px 10px;border-radius:10px;text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
+.sub-link:active{background:var(--surface)}
+.features{margin-top:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.feat svg{width:28px;height:28px;margin:0 auto 12px}
+.feat span{display:block;font-size:13px;line-height:1.35}
+.wave{position:absolute;left:0;right:0;bottom:64px;width:100%;height:120px;z-index:0;pointer-events:none}
+
+/* Barre d'onglets */
+.tabbar{flex:none;height:64px;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--sep);background:var(--bg);position:relative;z-index:2}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#8A9099;font-size:11px;font-weight:500;text-align:center}
+.tab svg{width:24px;height:24px}
+.tab.on{color:var(--primary)}
+
+/* Chips */
+.chips{flex:none;display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:36px;padding:0 14px;border-radius:12px;background:var(--surface);font-size:13px;font-weight:500;border:1.5px solid transparent;white-space:nowrap;transition:background .15s,border-color .15s}
+.chip.on{background:var(--primary-soft);border-color:var(--primary)}
+.chip .c{color:var(--text-2);margin-left:2px}
+
+/* Lignes d'annonces */
+.list{padding-bottom:24px}
+.row{display:flex;gap:16px;padding:12px 20px;position:relative;cursor:pointer;align-items:flex-start}
+.row:active{background:#FAFAFB}
+.row+.row::before,.offer+.offer::before,.h-row+.h-row::before{content:'';position:absolute;top:0;left:20px;right:20px;height:1px;background:var(--sep)}
+.thumb{flex:none;width:100px;height:100px;border-radius:12px;background:var(--surface);overflow:hidden;display:grid;place-items:center;color:var(--text-3)}
+.thumb svg{width:80%;height:80%}
+.thumb>svg[stroke]{width:28px;height:28px}
+.thumb img,.hero img,.thumbs .t img{width:100%;height:100%;object-fit:cover}
+.row-body{flex:1;min-width:0;padding-top:6px}
+.r-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:30px}
+.r-price{font-size:18px;font-weight:700;margin-top:5px;display:flex;align-items:center;gap:8px;font-variant-numeric:tabular-nums}
+.r-meta{font-size:13px;color:var(--text-2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r-meta.light{color:var(--text-3)}
+.heart{position:absolute;top:10px;right:12px;width:40px;height:40px;display:grid;place-items:center;color:var(--text);border-radius:12px}
+.heart svg,.heart-top svg{width:21px;height:21px;transition:fill .15s,stroke .15s}
+.heart.on svg,.heart-top.on svg{fill:var(--primary);stroke:var(--primary)}
+.pop svg{animation:pop .32s ease-out}
+@keyframes pop{45%{transform:scale(1.28)}}
+.badge{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:8px;background:var(--badge-bg);color:var(--badge-text);font-size:13px;font-weight:600;white-space:nowrap}
+.badge.sm{height:22px;padding:0 8px;font-size:12px}
+.badge.opp{background:transparent;box-shadow:inset 0 0 0 1.5px var(--primary);color:var(--badge-text)}
+
+/* Détail d'un groupe */
+.g-head{text-align:center;padding:0 24px 16px}
+.g-head h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.g-head p{font-size:13px;color:var(--text-2);margin-top:4px}
+.hero{margin:0 20px;aspect-ratio:6/5;border-radius:16px;background:var(--surface);overflow:hidden;display:grid;place-items:center;color:var(--text-3)}
+.hero svg{width:74%;height:74%}
+.hero>svg[stroke]{width:40px;height:40px}
+.thumbs{position:relative;display:flex;gap:10px;overflow-x:auto;padding:14px 20px 6px;scrollbar-width:none}
+.thumbs::-webkit-scrollbar{display:none}
+.thumbs .t{flex:none;width:72px;height:66px;border-radius:12px;background:var(--surface);overflow:hidden;display:grid;place-items:center;border:2px solid transparent;transition:border-color .15s}
+.thumbs .t.on{border-color:var(--primary)}
+.thumbs .t svg{width:72%;height:72%}
+.pricebox{margin:14px 20px 4px;padding:16px 16px 14px;border-radius:16px;background:var(--surface)}
+.pb-nums{display:grid;grid-template-columns:repeat(3,1fr);text-align:center}
+.pb-nums b{display:block;font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.pb-nums span{display:block;font-size:12px;color:var(--text-2);margin-top:2px}
+.pb-bar{position:relative;height:4px;border-radius:4px;background:#DFE2E6;margin:16px 8px 0}
+.pb-avg{position:absolute;top:-4px;width:2px;height:12px;border-radius:2px;background:#A7ADB4;transform:translateX(-1px)}
+.pb-dot{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--primary);border:2.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transform:translate(-50%,-50%)}
+.pb-cap{margin-top:14px;font-size:13px;color:var(--text-2);text-align:center;line-height:1.45}
+.pb-cap b{color:var(--text);font-weight:600}
+.pb-cap.opp{color:var(--badge-text)}
+.pb-cap.opp b{color:var(--badge-text)}
+.offers{margin-top:6px}
+.offer{display:flex;align-items:center;gap:10px;padding:12px 20px;position:relative;cursor:pointer;min-height:58px}
+.offer:active{background:#FAFAFB}
+.offer.sel{background:#F7FBFA}
+.o-left{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.o-price{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.o-seller{width:116px;flex:none;display:flex;flex-direction:column;min-width:0}
+.o-seller b{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o-seller small{font-size:12px;color:var(--text-3);margin-top:2px;white-space:nowrap}
+.offer>svg{width:18px;height:18px;flex:none;color:var(--text-2)}
+.link-row{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 40px);margin:4px 20px 0;min-height:50px;border-top:1px solid var(--sep);font-size:15px;font-weight:500}
+.link-row span{display:flex;align-items:center;gap:4px;color:var(--text-2);font-weight:400}
+.link-row svg{width:18px;height:18px}
+.note{padding:10px 20px 24px;font-size:12px;color:var(--text-3);line-height:1.5}
+
+/* Recherche en attente */
+.filt-cap{padding:0 20px 8px;font-size:13px;color:var(--text-3)}
+.filt{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px}
+.filt span{height:32px;display:inline-flex;align-items:center;padding:0 12px;border-radius:10px;background:var(--surface);font-size:13px;color:var(--text)}
+
+/* Filtres et réglages */
+.f-block{padding:0 20px 14px}
+.f-label{display:block;font-size:15px;font-weight:500;margin-bottom:10px}
+.price-row{display:flex;align-items:center;gap:12px}
+.price-row span{color:var(--text-2)}
+.inp{flex:1;min-width:0;height:48px;border-radius:12px;background:var(--surface);border:1.5px solid transparent;padding:0 14px;font-size:15px;outline:0;transition:border-color .15s,background .15s}
+.inp:focus{border-color:var(--primary);background:#fff}
+.inp::placeholder{color:var(--text-3)}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:10px 0;margin:0 20px;width:calc(100% - 40px);border-bottom:1px solid var(--sep);text-align:left;font-size:16px;font-weight:500}
+.set-row .val{display:flex;align-items:center;gap:4px;color:var(--text-2);font-size:15px;font-weight:400;white-space:nowrap;max-width:60%;overflow:hidden}
+.set-row .val svg{width:18px;height:18px;flex:none}
+.set-row.sw>span{display:flex;flex-direction:column}
+.set-row.sw small{font-size:13px;color:var(--text-2);margin-top:2px;font-weight:400}
+.set-row.danger{color:var(--danger);font-size:15px}
+.switch{flex:none;width:51px;height:31px;border-radius:999px;background:#E3E6EA;position:relative;transition:background .2s}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.16);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.switch.on{background:var(--primary)}
+.switch.on::after{transform:translateX(20px)}
+.switch:disabled{opacity:.4;cursor:default}
+.pick-row{display:flex;align-items:center;gap:10px;min-height:54px;margin:0 20px;width:calc(100% - 40px);border-bottom:1px solid var(--sep);font-size:16px;text-align:left}
+.pick-row .n{margin-left:auto;font-size:13px;color:var(--text-3)}
+.pick-row svg{width:20px;height:20px;color:var(--primary);flex:none}
+.pick-row .ph{width:20px;flex:none}
+.pick-row:disabled{color:var(--text-3);cursor:default}
+.sec{font-size:13px;font-weight:600;color:var(--text-2);padding:6px 20px 4px}
+.about{padding:32px 20px;text-align:center;font-size:12px;color:var(--text-3);line-height:1.6}
+
+/* Recherches */
+.h-row{display:flex;align-items:center;gap:14px;width:100%;padding:12px 20px;text-align:left;position:relative}
+.h-row:active{background:#FAFAFB}
+.h-ic{width:44px;height:44px;border-radius:12px;background:var(--surface);display:grid;place-items:center;flex:none}
+.h-ic svg{width:20px;height:20px}
+.h-body{flex:1;min-width:0;display:flex;flex-direction:column}
+.h-body b{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-body small{font-size:13px;color:var(--text-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-date{font-size:12px;color:var(--text-3);white-space:nowrap}
+.h-row>svg{width:18px;height:18px;color:var(--text-3);flex:none}
+
+/* États vides, message */
+.empty{text-align:center;padding:48px 32px}
+.empty .ic{width:56px;height:56px;border-radius:50%;background:var(--surface);display:grid;place-items:center;margin:0 auto 16px}
+.empty .ic svg{width:24px;height:24px;color:var(--text-2)}
+.empty h3{font-size:17px;font-weight:600}
+.empty p{font-size:14px;color:var(--text-2);margin-top:6px;line-height:1.5}
+.empty .acts{margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);opacity:0;pointer-events:none;background:#1B1E22;color:#fff;font-size:14px;font-weight:500;padding:11px 16px;border-radius:12px;max-width:min(88vw,420px);text-align:center;transition:opacity .2s,transform .2s;z-index:50}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+'use strict';
+
+/* ---------- Outils ---------- */
+const app = document.getElementById('app');
+const $ = (s) => app.querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('vr2:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('vr2:' + k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+};
+const fmtPrix = (n) => (n == null || !isFinite(n)) ? 'Prix indisponible' : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(n);
+function ilYa(iso) {
+  if (!iso) return '';
+  const m = (Date.now() - new Date(iso).getTime()) / 60000;
+  if (m < 1) return "À l'instant";
+  if (m < 60) return 'Il y a ' + Math.floor(m) + ' min';
+  if (m < 1440) return 'Il y a ' + Math.floor(m / 60) + ' h';
+  if (m < 2880) return 'Hier';
+  return 'Il y a ' + Math.floor(m / 1440) + ' j';
+}
+function toast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2400);
+}
+
+/* ---------- Icônes (style Lucide) ---------- */
+const sv = (p) => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+const HEART = '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>';
+const HOUSE = 'M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z';
+const I = {
+  back: sv('<path d="m15 18-6-6 6-6"/>'),
+  chevR: sv('<path d="m9 18 6-6-6-6"/>'),
+  x: sv('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+  arrow: sv('<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'),
+  ext: sv('<path d="M7 7h10v10"/><path d="M7 17 17 7"/>'),
+  link: sv('<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'),
+  heart: sv(HEART),
+  heartF: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">' + HEART + '</svg>',
+  home: sv('<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="' + HOUSE + '"/>'),
+  homeF: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + HOUSE + '" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><rect x="10" y="13.5" width="4" height="8" rx="1" fill="#fff"/></svg>',
+  search: sv('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  gear: sv('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>'),
+  sliders: sv('<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>'),
+  zapF: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>',
+  barsF: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3.5" y="11" width="3.6" height="10" rx="1.4"/><rect x="10.2" y="3" width="3.6" height="18" rx="1.4"/><rect x="16.9" y="7" width="3.6" height="14" rx="1.4"/></svg>',
+  tag: sv('<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>'),
+  check: sv('<path d="M20 6 9 17l-5-5"/>'),
+  radar: sv('<path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/>'),
+  image: sv('<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>'),
+};
+
+/* ---------- Lecture du texte des annonces ---------- */
+const deaccent = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+function tokens(s) {
+  return deaccent(String(s || '').toLowerCase())
+    .replace(/\bt[\s-]?shirts?\b|\btee[\s-]?shirts?\b/g, ' tshirt ')
+    .replace(/(\d+)[.,]\d+/g, '$1')
+    .split(/[^a-z0-9]+/).filter(Boolean);
+}
+const STOP = new Set('de du des la le les l d et avec pour en a au aux un une sur taille t tres bon etat neuf neuve neufs comme jamais porte portee homme femme femmes hommes enfant enfants garcon fille unisexe mixte original originale authentique lot eu fr us uk new'.split(' '));
+const SIZES = new Set('xxs xs s m l xl xxl xxxl 2xl 3xl 4xl'.split(' '));
+const isSize = (t) => SIZES.has(t) || (/^\d{2}$/.test(t) && +t >= 28 && +t <= 50);
+const COLOR_CANON = { noir: 'noir', noire: 'noir', noirs: 'noir', noires: 'noir', black: 'noir', blanc: 'blanc', blanche: 'blanc', blancs: 'blanc', blanches: 'blanc', white: 'blanc', gris: 'gris', grise: 'gris', grises: 'gris', grey: 'gris', gray: 'gris', anthracite: 'gris', bleu: 'bleu', bleue: 'bleu', bleus: 'bleu', bleues: 'bleu', marine: 'marine', navy: 'marine', rouge: 'rouge', rouges: 'rouge', vert: 'vert', verte: 'vert', verts: 'vert', vertes: 'vert', kaki: 'kaki', beige: 'beige', rose: 'rose', roses: 'rose', jaune: 'jaune', orange: 'orange', violet: 'violet', marron: 'marron', camel: 'camel', creme: 'creme', bordeaux: 'bordeaux', multicolore: 'multicolore' };
+const GENERIC = new Set('sweat sweats sweatshirt hoodie hoodies pull pulls veste vestes jacket zip zippe zippee capuche pantalon pantalons jogging joggings bas survetement basket baskets chaussure chaussures sneaker sneakers tshirt tee short shorts casquette casquettes sac haut top polo maillot doudoune manteau parka coupe vent ensemble col manches longues courtes'.split(' '));
+const CATS = [
+  ['Chaussures', /\b(baskets?|sneakers?|chaussures?|air force|air max|dunk|jordan|trainers?)\b/],
+  ['Pantalons', /\b(jogging|joggers?|pantalons?|shorts?|leggings?)\b/],
+  ['Vestes', /\b(vestes?|jackets?|windrunner|doudounes?|coupe vent|manteaux?|parkas?|blousons?)\b/],
+  ['Sweats', /\b(sweats?|sweatshirts?|hoodies?|pulls?|tech fleece|polaires?|capuche)\b/],
+  ['Hauts', /\b(tshirt|tee|maillots?|polos?|debardeurs?|tops?|chemises?)\b/],
+  ['Accessoires', /\b(casquettes?|sacs?|bonnets?|chaussettes?|bananes?|gants?|echarpes?)\b/],
+];
+const categorie = (joined) => { for (const [nom, re] of CATS) if (re.test(joined)) return nom; return 'Autres'; };
+function splitTailleEtat(s) {
+  if (!s) return [null, null];
+  const p = String(s).split(/\s*[·•|]\s*/).filter(Boolean);
+  if (p.length >= 2) return [p[0], p.slice(1).join(' · ')];
+  return /neuf|etat|état|satisfaisant/i.test(p[0]) ? [null, p[0]] : [p[0], null];
+}
+function prep(a, i) {
+  const tk = tokens(a.titre);
+  const brandTk = new Set(tokens(a.marque));
+  const colors = new Set(), model = [], generic = [];
+  for (const t of tk) {
+    if (STOP.has(t) || isSize(t) || brandTk.has(t)) continue;
+    if (COLOR_CANON[t]) { colors.add(COLOR_CANON[t]); continue; }
+    if (GENERIC.has(t)) { if (!generic.includes(t)) generic.push(t); continue; }
+    if (!model.includes(t)) model.push(t);
+  }
+  const gen = model.length === 0;
+  const m = gen ? generic : model;
+  const te = splitTailleEtat(a.taille_etat);
+  const p = a.prix != null ? a.prix : a.prix_total;
+  return Object.assign({}, a, {
+    id: String(a.id), _i: i, _brand: [...brandTk].join(' '), _model: m, _mset: new Set(m), _gen: gen, _colors: colors,
+    _cat: categorie(tk.join(' ')), _taille: te[0], _etat: te[1], _p: p == null ? Infinity : p,
+  });
+}
+
+/* ---------- Comparaison : 4 niveaux ---------- */
+const jaccard = (A, B) => { let n = 0; for (const x of A) if (B.has(x)) n++; const u = A.size + B.size - n; return u ? n / u : 0; };
+const comparable = (a) => !!a._brand && a._cat !== 'Autres' && a._mset.size > 0;
+// Identique : même marque, même catégorie, même modèle précis ET même couleur connue des deux côtés.
+const identique = (a, b) => comparable(a) && comparable(b) && !a._gen && !b._gen && a._brand === b._brand && a._cat === b._cat &&
+  jaccard(a._mset, b._mset) >= 0.8 && a._colors.size > 0 && b._colors.size > 0 && [...a._colors].some((c) => b._colors.has(c));
+// Très similaire : même marque, même catégorie, modèle très proche (couleur ou variante possiblement différente).
+const tresSimilaire = (a, b) => comparable(a) && comparable(b) && a._brand === b._brand && a._cat === b._cat && jaccard(a._mset, b._mset) >= 0.5;
+function niveau(sel, x) {
+  if (sel === x) return 'Cette annonce';
+  if (identique(sel, x)) return 'Identique';
+  if (tresSimilaire(sel, x)) return 'Très similaire';
+  return 'Même groupe';
+}
+function grouper(list, same) {
+  const parent = list.map((_, i) => i);
+  const find = (i) => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+  const buckets = new Map();
+  list.forEach((it, i) => { const k = it._brand + '|' + it._cat; if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(i); });
+  for (const idx of buckets.values()) {
+    for (let x = 0; x < idx.length; x++) for (let y = x + 1; y < idx.length; y++) {
+      const a = idx[x], b = idx[y];
+      if (find(a) !== find(b) && same(list[a], list[b])) parent[find(a)] = find(b);
+    }
+  }
+  return list.map((_, i) => find(i));
+}
+const joli = (t) => ({ tshirt: 'T-shirt' })[t] || (/^\d/.test(t) ? t : t.charAt(0).toUpperCase() + t.slice(1));
+function nomGroupe(arr) {
+  const cnt = new Map();
+  for (const it of arr) { const k = it._model.join(' '); cnt.set(k, (cnt.get(k) || 0) + 1); }
+  const sig = [...cnt.entries()].sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0];
+  const bc = new Map();
+  for (const it of arr) if (it.marque) bc.set(it.marque, (bc.get(it.marque) || 0) + 1);
+  const brand = bc.size ? [...bc.entries()].sort((a, b) => b[1] - a[1])[0][0] : '';
+  if (!sig) return arr[0].titre || 'Annonce';
+  return (brand ? brand + ' ' : '') + sig.split(' ').map(joli).join(' ');
+}
+const mediane = (v) => { const s = v.slice().sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+function derive(analysis) {
+  const items = analysis.raw.map(prep);
+  const simRoot = grouper(items, tresSimilaire);
+  const idRoot = grouper(items, identique);
+  const simMap = new Map(), idMap = new Map(), byId = new Map(), buckets = new Map();
+  items.forEach((it, i) => {
+    it._sim = 's' + simRoot[i]; it._idg = 'd' + idRoot[i]; byId.set(it.id, it);
+    if (!simMap.has(it._sim)) simMap.set(it._sim, []); simMap.get(it._sim).push(it);
+    if (!idMap.has(it._idg)) idMap.set(it._idg, []); idMap.get(it._idg).push(it);
+    if (comparable(it)) { const k = it._brand + '|' + it._cat; if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(it); }
+  });
+  const groups = new Map();
+  for (const [gid, arr] of simMap) {
+    arr.sort((a, b) => a._p - b._p);
+    const prix = arr.map((i) => i._p).filter(isFinite);
+    const stats = prix.length ? { min: Math.min.apply(null, prix), max: Math.max.apply(null, prix), moy: prix.reduce((s, v) => s + v, 0) / prix.length } : null;
+    arr.forEach((it) => { it._simN = arr.length; });
+    if (arr.length > 1 && isFinite(arr[0]._p)) arr[0]._best = true;
+    // Opportunité : au moins 4 autres annonces comparables, prix ≤ 70 % de leur médiane et au moins 5 € d'écart
+    if (arr.length >= 5) {
+      for (const it of arr) {
+        if (!isFinite(it._p)) continue;
+        const autres = arr.filter((x) => x !== it && isFinite(x._p)).map((x) => x._p);
+        if (autres.length < 4) continue;
+        const med = mediane(autres);
+        if (it._p <= med * 0.7 && med - it._p >= 5) it._opp = { med, n: autres.length, pct: Math.round((1 - it._p / med) * 100) };
+      }
+    }
+    groups.set(gid, { id: gid, items: arr, name: nomGroupe(arr), stats, key: arr[0]._brand + '|' + arr[0]._cat });
+  }
+  for (const arr of idMap.values()) arr.forEach((it) => { it._idN = arr.length; });
+  return { items, groups, byId, buckets, hasDates: items.some((i) => i.date_photo) };
+}
+
+/* ---------- Filtres et tris ---------- */
+const TRI = { pert: 'Pertinence', recent: 'Plus récent', asc: 'Prix croissant', desc: 'Prix décroissant' };
+const DEF_LABEL = { taille: 'Toutes', etat: 'Tous', marque: 'Toutes', categorie: 'Toutes', vendeur: 'Tous' };
+const TITRE_CHAMP = { taille: 'Taille', etat: 'État', marque: 'Marque', categorie: 'Catégorie', vendeur: 'Vendeur', tri: 'Trier par' };
+const CLE_CHAMP = { taille: '_taille', etat: '_etat', marque: 'marque', categorie: '_cat', vendeur: 'vendeur' };
+const defaultFilters = () => ({ min: '', max: '', taille: null, etat: null, marque: null, categorie: null, vendeur: null, recentes: false, groupes: false, tri: 'pert' });
+function nbFiltres(f) {
+  let n = 0;
+  if (f.min !== '') n++; if (f.max !== '') n++;
+  for (const k of Object.keys(CLE_CHAMP)) if (f[k]) n++;
+  if (f.recentes) n++; if (f.groupes) n++; if (f.tri !== 'pert') n++;
+  return n;
+}
+const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+function appliquer(items, f) {
+  const min = num(f.min), max = num(f.max), jour = Date.now() - 86400000;
+  return items.filter((it) => {
+    if (min != null && !(it._p >= min)) return false;
+    if (max != null && !(it._p <= max)) return false;
+    for (const k of Object.keys(CLE_CHAMP)) if (f[k] && it[CLE_CHAMP[k]] !== f[k]) return false;
+    if (f.recentes && !(it.date_photo && new Date(it.date_photo).getTime() >= jour)) return false;
+    if (f.groupes && !(it._simN >= 2)) return false;
+    return true;
+  });
+}
+function trier(arr, tri) {
+  const a = arr.slice();
+  if (tri === 'asc') return a.sort((x, y) => x._p - y._p);
+  if (tri === 'desc') return a.sort((x, y) => y._p - x._p);
+  if (tri === 'recent') return a.sort((x, y) => (x.date_photo && y.date_photo) ? y.date_photo.localeCompare(x.date_photo) : x._i - y._i);
+  return a.sort((x, y) => x._i - y._i);
+}
+function parGroupes(arr, key) {
+  const minBy = new Map();
+  for (const it of arr) minBy.set(it[key], Math.min(minBy.has(it[key]) ? minBy.get(it[key]) : Infinity, it._p));
+  return arr.slice().sort((a, b) => (minBy.get(a[key]) - minBy.get(b[key])) || (a[key] < b[key] ? -1 : a[key] > b[key] ? 1 : 0) || a._p - b._p);
+}
+function listes(d, f) {
+  const base = appliquer(d.items, f);
+  return {
+    tous: trier(base, f.tri),
+    meilleurs: base.filter((i) => i._best).sort((a, b) => b._simN - a._simN || a._p - b._p),
+    identiques: parGroupes(base.filter((i) => i._idN >= 2), '_idg'),
+    similaires: parGroupes(base.filter((i) => i._simN >= 2), '_sim'),
+    opportunites: base.filter((i) => i._opp).sort((a, b) => b._opp.pct - a._opp.pct),
+  };
+}
+
+/* ---------- Lien Vinted ---------- */
+function lireLien(s) {
+  s = String(s || '').trim();
+  if (!s) return { ok: false, msg: '' };
+  let u;
+  try { u = new URL(/^https?:\/\//i.test(s) ? s : 'https://' + s); } catch (e) { return { ok: false, msg: "Ce n'est pas un lien valide." }; }
+  if (!/^(www\.)?vinted\.fr$/i.test(u.hostname)) return { ok: false, msg: 'Colle un lien vinted.fr.' };
+  if (!u.pathname.startsWith('/catalog')) return { ok: false, msg: 'Colle le lien d’une page de résultats (il contient /catalog).' };
+  u.searchParams.delete('page'); u.searchParams.delete('time'); u.searchParams.delete('search_id');
+  const q = (u.searchParams.get('search_text') || '').trim();
+  let nom = q;
+  if (!nom) { const m = u.pathname.match(/^\/catalog\/\d+-([^/]+)/); nom = m ? decodeURIComponent(m[1]).replace(/-/g, ' ') : 'Recherche Vinted'; }
+  return { ok: true, url: 'https://www.vinted.fr' + u.pathname + (u.search || ''), query: nom.charAt(0).toUpperCase() + nom.slice(1), filtres: filtresLien(u) };
+}
+function filtresLien(u) {
+  const sp = u.searchParams, out = [];
+  const q = sp.get('search_text'); if (q) out.push('« ' + q.trim() + ' »');
+  const pf = sp.get('price_from'), pt = sp.get('price_to');
+  if (pf && pt) out.push('Prix ' + pf + ' – ' + pt + ' €'); else if (pf) out.push('Dès ' + pf + ' €'); else if (pt) out.push("Jusqu'à " + pt + ' €');
+  const cnt = (k, s, p) => { const n = sp.getAll(k).filter(Boolean).length; if (n) out.push(n + ' ' + (n > 1 ? p : s)); };
+  cnt('catalog[]', 'catégorie', 'catégories'); cnt('brand_ids[]', 'marque', 'marques'); cnt('size_ids[]', 'taille', 'tailles');
+  cnt('status_ids[]', 'état', 'états'); cnt('color_ids[]', 'couleur', 'couleurs'); cnt('material_ids[]', 'matière', 'matières');
+  const o = { newest_first: 'Plus récents d’abord', price_low_to_high: 'Prix croissant', price_high_to_low: 'Prix décroissant', relevance: 'Pertinence' }[sp.get('order')];
+  if (o) out.push(o);
+  return out;
+}
+
+/* ---------- Aperçu (annonces fictives, jamais enregistrées dans l'historique) ---------- */
+const DEMO = [
+  { cat: 'Sweats', titres: ['Nike Tech Fleece', 'Sweat Nike Tech Fleece', 'Nike Tech Fleece zippé', 'Hoodie Nike Tech Fleece'], couleurs: ['noir', 'gris', 'blanc', 'marine'], prix: [22, 58], n: 12, t: 'hauts' },
+  { cat: 'Chaussures', titres: ['Nike Air Force 1', 'Baskets Nike Air Force 1', 'Air Force 1 Nike blanches'], couleurs: ['blanc'], prix: [32, 70], n: 9, t: 'pieds' },
+  { cat: 'Vestes', titres: ['Nike Windrunner', 'Veste Nike Windrunner', 'Coupe-vent Nike Windrunner'], couleurs: ['noir', 'marine', 'kaki'], prix: [28, 55], n: 6, t: 'hauts' },
+  { cat: 'Pantalons', titres: ['Nike Jogging', 'Jogging Nike', 'Pantalon jogging Nike'], couleurs: ['gris', 'noir'], prix: [14, 32], n: 7, t: 'hauts' },
+  { cat: 'Chaussures', titres: ['Nike Dunk Low', 'Nike Dunk Low Panda', 'Baskets Nike Dunk Low'], couleurs: ['noir', 'gris'], prix: [40, 90], n: 8, t: 'pieds' },
+  { cat: 'Hauts', titres: ['T-shirt Nike Sportswear', 'Nike Sportswear tee-shirt'], couleurs: ['blanc', 'noir', 'gris'], prix: [6, 16], n: 6, t: 'hauts' },
+  { cat: 'Chaussures', titres: ['Nike Air Max 90', 'Baskets Nike Air Max 90'], couleurs: ['blanc', 'gris'], prix: [35, 75], n: 5, t: 'pieds' },
+  { cat: 'Accessoires', titres: ['Casquette Nike Heritage86', 'Casquette Nike'], couleurs: ['noir', 'beige'], prix: [5, 14], n: 3, t: null },
+];
+const VENDEURS = ['leon.vnt', 'sarahh_', 'mathis_23', 'clara.vnt', 'enzo_ly', 'victor_l', 'ines.dress', 'noah_k', 'lea.vtd', 'tom.second', 'jade_mode', 'hugo.fripe', 'manon_vt', 'lucas.b', 'chloe.dressing', 'yanis_sneak', 'emma.v', 'nathan.frip', 'zoe_closet', 'adam.vnt'];
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function genererApercu() {
+  const r = rng(20260923), pick = (a) => a[Math.floor(r() * a.length)];
+  const out = [];
+  let k = 0;
+  for (const m of DEMO) {
+    for (let j = 0; j < m.n; j++) {
+      const couleur = m.couleurs[j % m.couleurs.length];
+      let titre = pick(m.titres);
+      if (!tokens(titre).some((t) => COLOR_CANON[t])) titre += ' ' + couleur;
+      const typique = (m.prix[0] + m.prix[1]) / 2, x = r();
+      const base = typique * (x < 0.1 ? 0.5 + r() * 0.15 : 0.8 + r() * 0.5);
+      const prix = r() < 0.25 ? Math.round(base * 2) / 2 : Math.round(base);
+      const taille = m.t === 'pieds' ? pick(['38', '39', '40', '41', '42', '43', '44', '45']) : m.t ? pick(['XS', 'S', 'M', 'M', 'L', 'L', 'XL']) : null;
+      const e = r();
+      const etat = e < 0.1 ? 'Neuf avec étiquette' : e < 0.25 ? 'Neuf sans étiquette' : e < 0.65 ? 'Très bon état' : e < 0.95 ? 'Bon état' : 'Satisfaisant';
+      out.push({
+        id: 'apercu-' + k++, titre, prix, prix_total: null, devise: 'EUR', marque: 'Nike',
+        taille_etat: taille ? taille + ' · ' + etat : etat, photo: null, vendeur: pick(VENDEURS),
+        lien: null, date_photo: null, fictive: { cat: m.cat, couleur },
+      });
+    }
+  }
+  const ordre = out.map((x) => [r(), x]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+  return ordre;
+}
+
+/* ---------- Illustrations de l'aperçu ---------- */
+const TEINTES = { noir: '#1F2124', gris: '#A5AAB0', blanc: '#F6F6F4', marine: '#243152', kaki: '#5F6C4F', beige: '#D9CAA9' };
+const FORMES = {
+  Sweats: (c, s, o) => '<path d="M31 25Q33 13 50 13Q67 13 69 25L79 29Q85 32 86 39L90 71Q90 74 87 74H81L77 50V85Q77 88 74 88H26Q23 88 23 85V50L19 74H13Q10 74 10 71L14 39Q15 32 21 29Z" fill="' + c + '" stroke="' + o + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M36 26Q50 40 64 26" fill="none" stroke="' + s + '" stroke-width="1.8"/><path d="M50 33V88" stroke="' + s + '" stroke-width="1.4"/><path d="M23 50L50 60L77 50" fill="none" stroke="' + s + '" stroke-width="1.2"/><path d="M24 83H76M12 70H20M80 70H88" stroke="' + s + '" stroke-width="2.5"/>',
+  Vestes: (c, s, o) => '<path d="M33 21Q50 15 67 21L79 28Q85 31 86 38L90 71Q90 74 87 74H81L77 50V85Q77 88 74 88H26Q23 88 23 85V50L19 74H13Q10 74 10 71L14 38Q15 31 21 28Z" fill="' + c + '" stroke="' + o + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M23 40L50 51L77 40V49L50 60L23 49Z" fill="' + s + '"/><path d="M38 20L50 28L62 20" fill="none" stroke="' + s + '" stroke-width="1.8"/><path d="M50 28V88" stroke="' + s + '" stroke-width="1.4"/><path d="M24 84H76M12 70H20M80 70H88" stroke="' + s + '" stroke-width="2.5"/>',
+  Pantalons: (c, s, o) => '<path d="M29 12H71L74 84Q74 88 70 88H57L51 36H49L43 88H30Q26 88 26 84Z" fill="' + c + '" stroke="' + o + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M29.3 19H70.7" stroke="' + s + '" stroke-width="2.5"/><path d="M47 19L46 30M53 19L54 30" stroke="' + s + '" stroke-width="1.2" stroke-linecap="round"/><path d="M32 26Q37 33 36 40M68 26Q63 33 64 40" fill="none" stroke="' + s + '" stroke-width="1.2"/><path d="M27 82H44M56 82H73" stroke="' + s + '" stroke-width="3"/>',
+  Chaussures: (c, s, o) => '<g transform="translate(0 -6)"><path d="M9 68L10 52Q11 46 18 46L28 45Q33 36 43 35L49 35Q51 44 58 49Q70 55 86 58Q93 60 93 68Z" fill="' + c + '" stroke="' + o + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M7 68H94Q96 68 96 71V74Q96 80 89 80H14Q7 80 7 74Z" fill="#FFFFFF" stroke="#D3D6DA" stroke-width="1.2"/><path d="M8 73.5H95" stroke="#E3E6EA" stroke-width="1.2"/><path d="M47 40L55 38M50 44.5L58.5 42.5M54 49L62 47" stroke="' + s + '" stroke-width="1.8" stroke-linecap="round"/><path d="M21 60Q46 63 76 59" fill="none" stroke="' + s + '" stroke-width="1.4"/><path d="M77 58Q84 64 93 65" fill="none" stroke="' + s + '" stroke-width="1.2"/><path d="M10 52Q14 58 20 58" fill="none" stroke="' + s + '" stroke-width="1.2"/></g>',
+  Hauts: (c, s, o) => '<path d="M35 15Q50 23 65 15L86 26L79 42L70 38V85Q70 88 67 88H33Q30 88 30 85V38L21 42L14 26Z" fill="' + c + '" stroke="' + o + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M37 16Q50 27 63 16" fill="none" stroke="' + s + '" stroke-width="2"/>',
+  Accessoires: (c, s, o) => '<g transform="translate(0 4)"><path d="M20 60Q20 28 50 28Q79 28 81 58Z" fill="' + c + '" stroke="' + o + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M17 60Q50 54 81 57Q95 59 96 66Q82 69 52 66Q30 64 17 63Z" fill="' + c + '" stroke="' + o + '" stroke-width="1.2" stroke-linejoin="round"/><path d="M17 60Q50 54 81 57Q95 59 96 66Q82 69 52 66Q30 64 17 63Z" fill="' + s + '"/><path d="M50 28V57M35 32Q41 44 38 58M65 32Q60 44 62 58" fill="none" stroke="' + s + '" stroke-width="1.2"/><circle cx="50" cy="28.5" r="2.4" fill="' + c + '" stroke="' + s + '"/></g>',
+};
+function dessin(cat, couleur) {
+  const c = TEINTES[couleur] || TEINTES.gris;
+  const clair = couleur === 'blanc' || couleur === 'beige' || couleur === 'gris';
+  const s = clair ? 'rgba(0,0,0,.13)' : 'rgba(255,255,255,.2)';
+  const o = couleur === 'blanc' ? '#D3D6DA' : 'none';
+  return '<svg viewBox="0 0 100 100" aria-hidden="true">' + (FORMES[cat] || FORMES.Sweats)(c, s, o) + '</svg>';
+}
+function visuel(it) {
+  if (it.fictive) return dessin(it.fictive.cat, it.fictive.couleur);
+  if (it.photo) return '<img src="' + esc(it.photo) + '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">';
+  return I.image;
+}
+document.addEventListener('error', (e) => { const t = e.target; if (t && t.tagName === 'IMG') { const p = t.parentNode; t.remove(); if (p && !p.firstChild) p.innerHTML = I.image; } }, true);
+
+/* ---------- État ---------- */
+const S = {
+  tab: 'home', stack: [], link: '', analysis: null, data: null, chip: 'tous', filters: defaultFilters(),
+  favs: store.get('favs', {}), histo: store.get('histo', []),
+  scrolls: {}, curKey: null, useHist: false, topNext: false,
+};
+const cur = () => S.stack[S.stack.length - 1];
+
+/* ---------- Navigation ---------- */
+try { history.replaceState({ n: 0 }, ''); S.useHist = true; } catch (e) { S.useHist = false; }
+function push(scr) {
+  S.stack.push(scr);
+  if (S.useHist) { try { history.pushState({ n: S.stack.length }, ''); } catch (e) { S.useHist = false; } }
+  render('fwd');
+}
+function back() {
+  if (!S.stack.length) return;
+  const n = S.stack.length;
+  if (S.useHist) {
+    history.back();
+    setTimeout(() => { if (S.stack.length === n) { S.stack.pop(); render('back'); } }, 400);
+  } else { S.stack.pop(); render('back'); }
+}
+window.addEventListener('popstate', (e) => {
+  const n = e.state && typeof e.state.n === 'number' ? e.state.n : 0;
+  if (n < S.stack.length) { S.stack.length = n; render('back'); }
+});
+function cleEcran() { const t = cur(); return t ? t.name + (t.gid || '') + (t.eq || '') + (t.field || '') + (t.id || '') : 'tab-' + S.tab; }
+function render(dir) {
+  const old = $('.scroll');
+  if (old && S.curKey) S.scrolls[S.curKey] = old.scrollTop;
+  const t = cur();
+  app.innerHTML = t ? VUES[t.name](t) : VUES[S.tab]();
+  const key = cleEcran();
+  const scr = app.firstElementChild;
+  if (dir && scr) scr.classList.add(dir === 'fwd' ? 'in-fwd' : 'in-back');
+  const sc = $('.scroll');
+  if (sc) {
+    if (S.topNext) { sc.scrollTop = 0; S.topNext = false; }
+    else if (dir !== 'fwd' && S.scrolls[key] != null) sc.scrollTop = S.scrolls[key];
+  }
+  const tOn = app.querySelector('.thumbs .t.on');
+  if (tOn) {
+    const box = tOn.parentNode;
+    if (tOn.offsetLeft + tOn.offsetWidth > box.scrollLeft + box.clientWidth || tOn.offsetLeft < box.scrollLeft) box.scrollLeft = tOn.offsetLeft - 20;
+  }
+  S.curKey = key;
+}
+
+/* ---------- Composants ---------- */
+const backBtn = '<button class="icon-btn" data-a="back" aria-label="Retour">' + I.back + '</button>';
+const head3 = (l, c, r) => '<header class="head3">' + l + '<div class="ttl">' + c + '</div>' + r + '</header>';
+function tabbar(active) {
+  const tabs = [['home', 'Accueil', I.home, I.homeF], ['searches', 'Recherches', I.search, I.search], ['favorites', 'Favoris', I.heart, I.heartF]];
+  return '<nav class="tabbar">' + tabs.map(([k, l, ic, icA]) => '<button class="tab' + (active === k ? ' on' : '') + '" data-a="tab" data-tab="' + k + '"' + (active === k ? ' aria-current="page"' : '') + '>' + (active === k ? icA : ic) + '<span>' + l + '</span></button>').join('') + '</nav>';
+}
+function vide(icon, titre, texte, actions) {
+  return '<div class="empty"><div class="ic">' + icon + '</div><h3>' + titre + '</h3><p>' + texte + '</p>' + (actions ? '<div class="acts">' + actions + '</div>' : '') + '</div>';
+}
+function badgeDe(it, ctx) {
+  if (ctx === 'meilleurs') return it._best ? '<span class="badge sm">Meilleur prix</span>' : '';
+  if (it._opp) return '<span class="badge sm opp">Opportunité</span>';
+  if (it._best) return '<span class="badge sm">Meilleur prix</span>';
+  return '';
+}
+function ligne(it, opts) {
+  opts = opts || {};
+  const fav = !!S.favs[it.id];
+  let taille = it._taille, etat = it._etat;
+  if (taille === undefined) { const te = splitTailleEtat(it.taille_etat); taille = te[0]; etat = te[1]; }
+  const meta = [taille && 'Taille ' + taille, etat].filter(Boolean).join(' • ');
+  const act = opts.tap === 'link' ? 'data-a="open-link" data-url="' + esc(it.lien || '') + '"'
+    : opts.tap === 'select' ? 'data-a="select-in-group" data-id="' + esc(it.id) + '"'
+    : 'data-a="open-group" data-id="' + esc(it.id) + '"';
+  return '<div class="row" role="button" tabindex="0" ' + act + '>' +
+    '<div class="thumb">' + visuel(it) + '</div>' +
+    '<div class="row-body"><p class="r-title">' + esc(it.titre || 'Titre indisponible') + '</p>' +
+    '<p class="r-price">' + fmtPrix(it.prix) + badgeDe(it, opts.ctx) + '</p>' +
+    (meta ? '<p class="r-meta">' + esc(meta) + '</p>' : '') +
+    (it.vendeur ? '<p class="r-meta">@' + esc(it.vendeur) + '</p>' : '') +
+    (it.date_photo ? '<p class="r-meta light">' + ilYa(it.date_photo) + '</p>' : '') +
+    (it.fictive && opts.tag ? '<p class="r-meta light">Annonce fictive (aperçu)</p>' : '') +
+    '</div><button class="heart' + (fav ? ' on' : '') + '" data-a="fav" data-id="' + esc(it.id) + '" aria-label="' + (fav ? 'Retirer des favoris' : 'Ajouter aux favoris') + '" aria-pressed="' + fav + '">' + I.heart + '</button></div>';
+}
+function blocPrix(g, sel) {
+  const st = g.stats;
+  if (!st || g.items.length < 2) return '';
+  const span = st.max - st.min;
+  const pos = (v) => span > 0 ? ((v - st.min) / span) * 100 : 50;
+  let cap;
+  if (sel._opp) {
+    cap = '<p class="pb-cap opp">Prix inférieur aux annonces comparables : <b>' + fmtPrix(sel._p) + '</b> contre ' + fmtPrix(Math.round(sel._opp.med)) + ' en médiane sur ' + sel._opp.n + ' autres annonces.</p>';
+  } else if (!isFinite(sel._p)) {
+    cap = '<p class="pb-cap">Prix de cette annonce indisponible.</p>';
+  } else if (sel._p === st.min) {
+    cap = '<p class="pb-cap">Cette annonce : <b>' + fmtPrix(sel._p) + '</b>, la moins chère du groupe.</p>';
+  } else {
+    const d = Math.round((sel._p / st.moy - 1) * 100);
+    cap = '<p class="pb-cap">Cette annonce : <b>' + fmtPrix(sel._p) + '</b>, ' + (d === 0 ? 'dans la moyenne.' : Math.abs(d) + ' % ' + (d < 0 ? 'sous' : 'au-dessus de') + ' la moyenne.') + '</p>';
+  }
+  return '<div class="pricebox">' +
+    '<div class="pb-nums"><div><b>' + fmtPrix(st.min) + '</b><span>Moins cher</span></div><div><b>' + fmtPrix(Math.round(st.moy)) + '</b><span>Moyenne</span></div><div><b>' + fmtPrix(st.max) + '</b><span>Plus cher</span></div></div>' +
+    '<div class="pb-bar" aria-hidden="true"><i class="pb-avg" style="left:' + pos(st.moy).toFixed(1) + '%"></i>' + (isFinite(sel._p) ? '<i class="pb-dot" style="left:' + pos(sel._p).toFixed(1) + '%"></i>' : '') + '</div>' +
+    cap + '</div>';
+}
+
+/* ---------- Vues ---------- */
+const WAVE = '<svg class="wave" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0 58C90 22 170 96 270 60S380 34 400 40V120H0Z" fill="#E6F6F1" opacity=".55"/><path d="M0 88C110 58 230 118 400 76V120H0Z" fill="#E6F6F1" opacity=".8"/></svg>';
+const VUES = {
+  home() {
+    const p = lireLien(S.link);
+    return '<section class="screen">' +
+      '<div class="topbar"><span></span><button class="icon-btn" data-a="settings" aria-label="Réglages">' + I.gear + '</button></div>' +
+      '<div class="scroll"><div class="home-inner">' +
+        '<h1 class="logo">Vinted<span>Radar</span></h1>' +
+        '<p class="tagline">Colle. Analyse. Compare.</p>' +
+        '<label class="field">' + I.link + '<input id="link" type="url" inputmode="url" enterkeyhint="go" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Colle ton lien Vinted ici" aria-label="Lien de recherche Vinted" value="' + esc(S.link) + '">' +
+        '<button type="button" class="clear' + (S.link ? '' : ' hide') + '" data-a="clear-link" aria-label="Effacer le lien">' + I.x + '</button></label>' +
+        '<p class="field-err" id="link-err" role="status">' + (S.link.trim() && !p.ok ? esc(p.msg) : '') + '</p>' +
+        '<button class="btn" id="go" data-a="analyze"' + (p.ok ? '' : ' disabled') + '>Analyser ' + I.arrow + '</button>' +
+        '<button class="sub-link" data-a="apercu">Voir un aperçu avec des annonces fictives</button>' +
+        '<div class="features">' +
+          '<div class="feat">' + I.zapF + '<span>Tous les<br>résultats</span></div>' +
+          '<div class="feat">' + I.barsF + '<span>Comparaison<br>auto</span></div>' +
+          '<div class="feat">' + I.tag + '<span>Meilleurs<br>prix</span></div>' +
+        '</div>' +
+      '</div></div>' + WAVE + tabbar('home') + '</section>';
+  },
+
+  pending(t) {
+    const e = S.histo.find((x) => x.id === t.id);
+    if (!e) return VUES.home();
+    return '<section class="screen">' + head3(backBtn, '<h2>' + esc(e.query) + '</h2><p>Recherche reconnue</p>', '<span></span>') +
+      '<div class="scroll">' +
+        (e.filtres.length ? '<p class="filt-cap">Repris de ton lien</p><div class="filt">' + e.filtres.map((f) => '<span>' + esc(f) + '</span>').join('') + '</div>' : '') +
+        vide(I.radar, 'En attente des annonces', 'Ouvre cette recherche sur Vinted dans Safari ou Chrome, fais défiler les résultats, puis touche le favori VintedRadar. Seules les annonces réellement capturées seront analysées.') +
+        '<p class="note" style="text-align:center">Le favori de capture sera ajouté à la prochaine étape.</p>' +
+      '</div>' +
+      '<div class="footer"><button class="btn" data-a="open-link" data-url="' + esc(e.url) + '">Ouvrir sur Vinted ' + I.ext + '</button></div></section>';
+  },
+
+  results(t) {
+    const d = S.data, a = S.analysis;
+    if (t.gid) {
+      const g = d.groups.get(t.gid);
+      return '<section class="screen">' + head3(backBtn, '<h2>' + esc(g.name) + '</h2><p>' + g.items.length + ' annonces comparables • du moins cher au plus cher</p>', '<span></span>') +
+        '<div class="scroll"><div class="list">' + g.items.map((i) => ligne(i, { tap: 'select' })).join('') + '</div></div></section>';
+    }
+    if (t.eq) {
+      const g = d.groups.get(t.eq), sel = g.items[0];
+      const eq = (d.buckets.get(g.key) || []).filter((x) => x._sim !== g.id).sort((x, y) => x._p - y._p);
+      return '<section class="screen">' + head3(backBtn, '<h2>Équivalents</h2><p>' + esc((sel.marque || '') + ' • ' + sel._cat) + ' • autres modèles</p>', '<span></span>') +
+        '<div class="scroll"><div class="list">' + eq.map((i) => ligne(i)).join('') + '</div></div></section>';
+    }
+    const f = S.filters, L = listes(d, f), list = L[S.chip], n = nbFiltres(f);
+    const chips = [['tous', 'Tous', L.tous.length], ['meilleurs', 'Meilleurs prix'], ['identiques', 'Identiques'], ['similaires', 'Similaires'], ['opportunites', 'Opportunités', L.opportunites.length]];
+    const sous = a.apercu ? d.items.length + ' annonces fictives • aperçu' : d.items.length + ' annonces analysées';
+    const VIDES = {
+      tous: 'Aucune annonce dans cette recherche.',
+      meilleurs: 'Aucun groupe d’annonces comparables pour l’instant.',
+      identiques: 'Aucune annonce identique : il faut la même marque, le même modèle et la même couleur.',
+      similaires: 'Aucune annonce très similaire trouvée.',
+      opportunites: 'Aucune annonce nettement sous le prix de ses comparables.',
+    };
+    return '<section class="screen">' +
+      head3(backBtn, '<h2>' + esc(a.query) + '</h2><p>' + sous + '</p>', '<button class="filter-btn" data-a="filters" aria-label="Filtres' + (n ? ' (' + n + ' actifs)' : '') + '">' + I.sliders + (n ? '<i class="dot"></i>' : '') + '</button>') +
+      '<div class="chips" role="tablist">' + chips.map(([k, l, c]) => '<button class="chip' + (S.chip === k ? ' on' : '') + '" role="tab" aria-selected="' + (S.chip === k) + '" data-a="chip" data-chip="' + k + '">' + l + (c != null ? ' <span class="c">' + c + '</span>' : '') + '</button>').join('') + '</div>' +
+      '<div class="scroll"><div class="list">' + (list.length ? list.map((i) => ligne(i, { ctx: S.chip })).join('')
+        : vide(I.search, 'Rien à afficher', n ? 'Aucune annonce ne correspond à tes filtres.' : VIDES[S.chip], n ? '<button class="btn-2" data-a="reset-filters">Réinitialiser les filtres</button>' : '')) + '</div></div></section>';
+  },
+
+  group(t) {
+    const d = S.data, g = d.groups.get(t.gid), items = g.items, n = items.length;
+    const sel = items.find((i) => i.id === t.sel) || items[0];
+    const fav = !!S.favs[sel.id];
+    const nbEq = ((d.buckets.get(g.key) || []).filter((x) => x._sim !== g.id)).length;
+    const offres = items.slice(0, 5).map((i, k) => {
+      const badge = k === 0 && n > 1 ? '<span class="badge">Meilleur prix</span>' : i._opp ? '<span class="badge opp">Opportunité</span>' : '';
+      return '<div class="offer' + (i === sel ? ' sel' : '') + '" role="button" tabindex="0" data-a="open-link" data-url="' + esc(i.lien || '') + '">' +
+        '<div class="o-left"><span class="o-price">' + fmtPrix(i.prix) + '</span>' + badge + '</div>' +
+        '<div class="o-seller"><b>@' + esc(i.vendeur || 'vendeur inconnu') + '</b><small>' + niveau(sel, i) + '</small></div>' + I.ext + '</div>';
+    }).join('');
+    const sousTitre = n > 1 ? n + ' annonces comparables' : (comparable(sel) ? 'Aucune annonce comparable trouvée' : 'Inconnu : pas assez d’informations pour comparer');
+    return '<section class="screen">' +
+      '<div class="topbar">' + backBtn + '<button class="icon-btn heart-top' + (fav ? ' on' : '') + '" data-a="fav" data-id="' + esc(sel.id) + '" aria-label="' + (fav ? 'Retirer des favoris' : 'Ajouter aux favoris') + '" aria-pressed="' + fav + '">' + I.heart + '</button></div>' +
+      '<div class="scroll">' +
+        '<div class="g-head"><h1>' + esc(g.name) + '</h1><p>' + sousTitre + '</p></div>' +
+        '<div class="hero">' + visuel(sel) + '</div>' +
+        (n > 1 ? '<div class="thumbs">' + items.map((i) => '<button class="t' + (i === sel ? ' on' : '') + '" data-a="thumb" data-id="' + esc(i.id) + '" aria-label="' + esc(i.titre) + ', ' + fmtPrix(i.prix) + '">' + visuel(i) + '</button>').join('') + '</div>' : '') +
+        blocPrix(g, sel) +
+        '<div class="offers">' + offres + '</div>' +
+        (n > 5 ? '<button class="link-row" data-a="see-all" data-gid="' + esc(g.id) + '">Voir les ' + n + ' annonces<span>' + I.chevR + '</span></button>' : '') +
+        (nbEq ? '<button class="link-row" data-a="see-eq" data-gid="' + esc(g.id) + '">Produits équivalents<span>' + nbEq + I.chevR + '</span></button>' : '') +
+        '<p class="note">Prix affichés hors frais de protection acheteurs.' + (S.analysis.apercu ? ' Annonces fictives de l’aperçu.' : '') + ' Touche une offre pour l’ouvrir sur Vinted.</p>' +
+      '</div>' +
+      '<div class="footer"><button class="btn" data-a="open-link" data-url="' + esc(sel.lien || '') + '">Voir sur Vinted ' + I.ext + '</button></div></section>';
+  },
+
+  filters(t) {
+    const d = t.draft, dates = S.data.hasDates;
+    const val = (k) => d[k] ? (k === 'vendeur' ? '@' + d[k] : d[k]) : DEF_LABEL[k];
+    return '<section class="screen">' +
+      '<div class="topbar">' + backBtn + '<button class="text-btn" data-a="reset-draft">Réinitialiser</button></div>' +
+      '<div class="scroll"><h1 class="page-title">Filtres</h1>' +
+        '<div class="f-block"><span class="f-label">Prix</span><div class="price-row">' +
+          '<input class="inp" data-f="min" inputmode="decimal" placeholder="Min" aria-label="Prix minimum" value="' + esc(d.min) + '"><span>-</span>' +
+          '<input class="inp" data-f="max" inputmode="decimal" placeholder="Max" aria-label="Prix maximum" value="' + esc(d.max) + '"></div></div>' +
+        Object.keys(CLE_CHAMP).map((k) => '<button class="set-row" data-a="pick" data-field="' + k + '"><span>' + TITRE_CHAMP[k] + '</span><span class="val">' + esc(val(k)) + I.chevR + '</span></button>').join('') +
+        '<div class="set-row sw"><span>Annonces récentes uniquement<small>' + (dates ? 'Moins de 24h' : 'Date non fournie par Vinted') + '</small></span>' +
+          '<button class="switch' + (d.recentes ? ' on' : '') + '" role="switch" aria-label="Annonces récentes uniquement" aria-checked="' + d.recentes + '" data-a="toggle" data-k="recentes"' + (dates ? '' : ' disabled') + '></button></div>' +
+        '<div class="set-row sw"><span>Produits identiques/similaires<small>Seulement les annonces qui ont des comparables</small></span>' +
+          '<button class="switch' + (d.groupes ? ' on' : '') + '" role="switch" aria-label="Produits identiques ou similaires" aria-checked="' + d.groupes + '" data-a="toggle" data-k="groupes"></button></div>' +
+        '<button class="set-row" data-a="pick" data-field="tri"><span>Trier par</span><span class="val">' + TRI[d.tri] + I.chevR + '</span></button>' +
+      '</div>' +
+      '<div class="footer"><button class="btn" data-a="apply">Appliquer</button></div></section>';
+  },
+
+  picker(t) {
+    const field = t.field, courant = t.draft[field], dates = S.data.hasDates;
+    let opts;
+    if (field === 'tri') {
+      opts = Object.keys(TRI).map((v) => ({ v, l: TRI[v], off: v === 'recent' && !dates, n: v === 'recent' && !dates ? 'Date indisponible' : v === 'pert' ? 'Ordre Vinted' : '' }));
+    } else {
+      const cnt = new Map();
+      for (const it of S.data.items) { const v = it[CLE_CHAMP[field]]; if (v) cnt.set(v, (cnt.get(v) || 0) + 1); }
+      const ORDRE = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+      const rang = (v) => { const i = ORDRE.indexOf(v); return i >= 0 ? i : (/^\d+$/.test(v) ? 100 + +v : 1000); };
+      const entries = [...cnt.entries()].sort(field === 'taille' ? (a, b) => rang(a[0]) - rang(b[0]) || b[1] - a[1] : (a, b) => b[1] - a[1] || String(a[0]).localeCompare(b[0]));
+      opts = [{ v: null, l: DEF_LABEL[field] }].concat(entries.map(([v, n]) => ({ v, l: field === 'vendeur' ? '@' + v : v, n })));
+    }
+    return '<section class="screen">' + head3(backBtn, '<h2 class="sm">' + TITRE_CHAMP[field] + '</h2>', '<span></span>') +
+      '<div class="scroll">' + opts.map((o) => {
+        const on = (o.v === null ? courant == null : courant === o.v);
+        return '<button class="pick-row" data-a="pick-val" data-v="' + esc(o.v === null ? '' : o.v) + '" data-null="' + (o.v === null) + '"' + (o.off ? ' disabled' : '') + '>' + (on ? I.check : '<span class="ph"></span>') + '<span>' + esc(o.l) + '</span>' + (o.n ? '<span class="n">' + esc(o.n) + '</span>' : '') + '</button>';
+      }).join('') + '</div></section>';
+  },
+
+  searches() {
+    const h = S.histo;
+    const lignes = h.map((e) => '<button class="h-row" data-a="hist-open" data-id="' + esc(e.id) + '"><span class="h-ic">' + I.search + '</span>' +
+      '<span class="h-body"><b>' + esc(e.query) + '</b><small>En attente de capture' + (e.filtres.length ? ' • ' + e.filtres.length + ' filtre' + (e.filtres.length > 1 ? 's' : '') : '') + '</small></span>' +
+      '<span class="h-date">' + ilYa(e.date) + '</span>' + I.chevR + '</button>').join('');
+    return '<section class="screen">' +
+      '<div class="topbar"><span></span>' + (h.length ? '<button class="text-btn" data-a="hist-clear">Effacer</button>' : '') + '</div>' +
+      '<div class="scroll"><h1 class="page-title">Recherches</h1>' +
+      (h.length ? lignes : vide(I.search, 'Aucune recherche pour l’instant', 'Colle un lien de recherche Vinted depuis l’accueil : il apparaîtra ici.', '<button class="btn-2" data-a="tab" data-tab="home">Coller un lien</button>')) +
+      '</div>' + tabbar('searches') + '</section>';
+  },
+
+  favorites() {
+    const favs = Object.values(S.favs).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+    return '<section class="screen">' +
+      '<div class="topbar"></div>' +
+      '<div class="scroll"><h1 class="page-title">Favoris</h1>' +
+      (favs.length ? '<div class="list">' + favs.map((i) => ligne(i, { tap: 'link', tag: true })).join('') + '</div>' : vide(I.heart, 'Aucun favori', 'Touche le cœur d’une annonce pour la garder ici, avec son lien Vinted.')) +
+      '</div>' + tabbar('favorites') + '</section>';
+  },
+
+  settings() {
+    return '<section class="screen">' + head3(backBtn, '<h2 class="sm">Réglages</h2>', '<span></span>') +
+      '<div class="scroll">' +
+        '<p class="sec">Données enregistrées sur cet appareil</p>' +
+        '<button class="set-row danger" data-a="confirm" data-do="histo">Effacer l’historique des recherches</button>' +
+        '<button class="set-row danger" data-a="confirm" data-do="favs">Effacer les favoris</button>' +
+        '<p class="about">VintedRadar · usage personnel<br>Aucun mot de passe Vinted n’est demandé ni enregistré.<br>Chaque annonce s’ouvre sur Vinted.</p>' +
+      '</div></section>';
+  },
+};
+
+/* ---------- Actions principales ---------- */
+function ouvrirAnalyse(a) { S.analysis = a; S.data = derive(a); S.filters = defaultFilters(); S.chip = 'tous'; S.scrolls = {}; }
+function sauverHisto() { store.set('histo', S.histo); }
+function analyser() {
+  const p = lireLien(S.link);
+  if (!p.ok) { majLien(true); return; }
+  let e = S.histo.find((x) => x.url === p.url);
+  if (e) { e.date = new Date().toISOString(); S.histo = [e].concat(S.histo.filter((x) => x !== e)); }
+  else { e = { id: 'r' + Date.now(), url: p.url, query: p.query, filtres: p.filtres, date: new Date().toISOString(), statut: 'attente' }; S.histo = [e].concat(S.histo).slice(0, 30); }
+  sauverHisto();
+  push({ name: 'pending', id: e.id });
+}
+function toggleFav(id) {
+  const it = (S.data && S.data.byId.get(id)) || S.favs[id];
+  if (!it) return;
+  const on = !S.favs[id];
+  if (on) S.favs[id] = { id, titre: it.titre, prix: it.prix, prix_total: it.prix_total, marque: it.marque, taille_etat: it.taille_etat, photo: it.photo, vendeur: it.vendeur, lien: it.lien, date_photo: it.date_photo, fictive: it.fictive, savedAt: Date.now() };
+  else delete S.favs[id];
+  store.set('favs', S.favs);
+  if (!cur() && S.tab === 'favorites') { render(); return; }
+  app.querySelectorAll('[data-a="fav"]').forEach((b) => {
+    if (b.dataset.id !== id) return;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', on ? 'Retirer des favoris' : 'Ajouter aux favoris');
+    b.classList.remove('pop');
+    if (on) { void b.offsetWidth; b.classList.add('pop'); }
+  });
+}
+function majLien(forcer) {
+  const p = lireLien(S.link);
+  const go = $('#go'), err = $('#link-err'), clr = $('.clear');
+  if (go) go.disabled = !p.ok;
+  if (err) err.textContent = (S.link.trim() || forcer) && !p.ok ? (p.msg || 'Colle un lien de recherche vinted.fr.') : '';
+  if (clr) clr.classList.toggle('hide', !S.link);
+}
+function confirmer(el, fn) {
+  if (el.dataset.armed === '1') { clearTimeout(el._t); el.dataset.armed = ''; fn(); return; }
+  el.dataset.armed = '1'; el.dataset.label = el.textContent;
+  el.textContent = 'Touche à nouveau pour confirmer';
+  el._t = setTimeout(() => { el.dataset.armed = ''; if (el.isConnected && !el.disabled) el.textContent = el.dataset.label; }, 3000);
+}
+const ACTIONS = {
+  tab(el) { S.tab = el.dataset.tab; S.stack = []; render(); },
+  settings() { push({ name: 'settings' }); },
+  back() { back(); },
+  'clear-link'(el, e) { e.preventDefault(); S.link = ''; const i = $('#link'); if (i) { i.value = ''; i.focus(); } majLien(); },
+  analyze() { analyser(); },
+  apercu() { ouvrirAnalyse({ id: 'apercu', query: 'Nike', apercu: true, raw: genererApercu() }); push({ name: 'results' }); },
+  chip(el) { S.chip = el.dataset.chip; S.topNext = true; render(); },
+  'open-group'(el) { const it = S.data.byId.get(el.dataset.id); if (it) push({ name: 'group', gid: it._sim, sel: it.id }); },
+  'select-in-group'(el) {
+    const below = S.stack[S.stack.length - 2], it = S.data.byId.get(el.dataset.id);
+    if (below && below.name === 'group' && it && below.gid === it._sim) { below.sel = it.id; back(); }
+    else if (it) push({ name: 'group', gid: it._sim, sel: it.id });
+  },
+  thumb(el) { cur().sel = el.dataset.id; render(); },
+  'open-link'(el) { const u = el.dataset.url; if (u) window.open(u, '_blank', 'noopener'); else toast('Annonce fictive : aucun lien Vinted.'); },
+  'see-all'(el) { push({ name: 'results', gid: el.dataset.gid }); },
+  'see-eq'(el) { push({ name: 'results', eq: el.dataset.gid }); },
+  fav(el) { toggleFav(el.dataset.id); },
+  filters() { push({ name: 'filters', draft: Object.assign({}, S.filters) }); },
+  'reset-draft'() { Object.assign(cur().draft, defaultFilters()); render(); },
+  'reset-filters'() { S.filters = defaultFilters(); S.topNext = true; render(); },
+  pick(el) { push({ name: 'picker', field: el.dataset.field, draft: cur().draft }); },
+  'pick-val'(el) { const t = cur(); t.draft[t.field] = el.dataset.null === 'true' ? null : el.dataset.v; back(); },
+  toggle(el) { const d = cur().draft, k = el.dataset.k; d[k] = !d[k]; el.classList.toggle('on', d[k]); el.setAttribute('aria-checked', String(d[k])); },
+  apply() { S.filters = Object.assign({}, cur().draft); S.scrolls.results = 0; back(); },
+  'hist-open'(el) { push({ name: 'pending', id: el.dataset.id }); },
+  'hist-clear'(el) { confirmer(el, () => { S.histo = []; sauverHisto(); render(); }); },
+  confirm(el) {
+    confirmer(el, () => {
+      if (el.dataset.do === 'histo') { S.histo = []; sauverHisto(); el.textContent = 'Historique effacé'; }
+      else { S.favs = {}; store.set('favs', {}); el.textContent = 'Favoris effacés'; }
+      el.disabled = true;
+    });
+  },
+};
+app.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-a]');
+  if (!el || el.disabled) return;
+  const fn = ACTIONS[el.dataset.a];
+  if (fn) fn(el, e);
+});
+app.addEventListener('keydown', (e) => {
+  if (e.target.id === 'link' && e.key === 'Enter') { e.preventDefault(); analyser(); return; }
+  if (e.target.classList && e.target.classList.contains('inp') && e.key === 'Enter') { e.target.blur(); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.getAttribute && e.target.getAttribute('role') === 'button' && e.target.dataset.a) { e.preventDefault(); e.target.click(); }
+});
+app.addEventListener('input', (e) => {
+  const t = e.target;
+  if (t.id === 'link') { S.link = t.value; majLien(); }
+  else if (t.dataset.f) { const top = cur(); if (top && top.draft) top.draft[t.dataset.f] = t.value.trim(); }
+});
+
+render();
+})();
+</script>
+</body>
+</html>
